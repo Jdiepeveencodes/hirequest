@@ -178,27 +178,27 @@ class VillageScene extends Phaser.Scene {
                     this.showDialog("The door opens...");
                     this.time.delayedCall(1500, () => this.scene.start("Area2Scene"));
                 } else {
-                    this.showDialog("Find all 3 NPCs first.");
+                    this.showDialog("Explore each statue to gather the riddles.");
                 }
                 break;
 
             case "infoSign":
-                this.showDialog("Seek Bram, Mirel, and Elara.");
+                this.showDialog("Seek statues of Bram, Mirel, and Elara for your keys.");
                 break;
 
             case "Bram":
                 this.riddle.Bram = true;
-                this.showDialog("Bram: 'I grow each year…'");
+                this.showDialog("Bram: 'I grow each year, yet I can’t be seen.'");
                 break;
 
             case "Mirel":
                 this.riddle.Mirel = true;
-                this.showDialog("Mirel: 'I open doors without keys…'");
+                this.showDialog("Mirel: 'I open doors no key can unlock.'");
                 break;
 
             case "Elara":
                 this.riddle.Elara = true;
-                this.showDialog("Elara: 'You earn me daily…'");
+                this.showDialog("Elara: 'You cannot borrow me,but you earn me every day'");
                 break;
         }
     }
@@ -211,7 +211,7 @@ const config = {
     pixelArt: true,
     physics: {
         default: "arcade",
-        arcade: { gravity: { y: 0 }, debug: false }
+        arcade: { gravity: { y: 0 }, debug: false}
     },
     scene: [VillageScene, Area2Scene]
 };

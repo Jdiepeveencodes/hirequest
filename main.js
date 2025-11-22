@@ -4,14 +4,17 @@ class VillageScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.tilemapTiledJSON("village", "assets/Maps/village_level1.json");
+        // --- TILEMAP ---
+        this.load.tilemapTiledJSON("village", "assets/maps/village_level1.json");
 
+        // --- TILESET IMAGE ---
         this.load.image(
             "roguelikeSheet_transparent",
-            "assets/TileSets/roguelikeSheet_transparent.png"
+            "assets/tilesets/roguelikeSheet_transparent.png"
         );
 
-        this.load.spritesheet("player", "assets/Sprites/player.png", {
+        // --- PLAYER SPRITE ---
+        this.load.spritesheet("player", "assets/sprites/player.png", {
             frameWidth: 16,
             frameHeight: 16
         });
@@ -33,7 +36,6 @@ class VillageScene extends Phaser.Scene {
 
         // --- OBJECTS ---
         const objects = map.getObjectLayer("Objects").objects;
-
         const spawnObj = objects.find(o => o.name === "PlayerSpawn");
         const spawn = spawnObj ? { x: spawnObj.x, y: spawnObj.y - 8 } : { x: 200, y: 200 };
 
@@ -65,20 +67,20 @@ class VillageScene extends Phaser.Scene {
             color: "#fff",
             padding: { left: 6, right: 6, top: 4, bottom: 4 }
         })
-            .setOrigin(0.5, 1)
+            .setOrigin(0.5)
             .setDepth(999)
             .setVisible(false);
 
         // --- DIALOG BOX ---
-        this.dialogBoxBG = this.add.rectangle(400, 530, 760, 120, 0x000000, 0.7)
+        this.dialogBoxBG = this.add.rectangle(375, 600, 700, 110, 0x000000, 0.7)
             .setScrollFactor(0)
             .setDepth(1000)
             .setVisible(false);
 
-        this.dialogText = this.add.text(50, 480, "", {
+        this.dialogText = this.add.text(50, 548, "", {
             fontSize: "20px",
             color: "#ffffff",
-            wordWrap: { width: 700 }
+            wordWrap: { width: 650 }
         })
             .setScrollFactor(0)
             .setDepth(1001)
@@ -93,7 +95,7 @@ class VillageScene extends Phaser.Scene {
         // --- RIDDLE PROGRESS ---
         this.riddle = { Bram: false, Mirel: false, Elara: false };
 
-        // --- INTERACTION ZONES (Radius = 60px) ---
+        // --- INTERACTION ZONES ---
         const RADIUS = 60;
         this.interactables = {};
 
@@ -115,13 +117,10 @@ class VillageScene extends Phaser.Scene {
     }
 
     update() {
-        // --- DIALOG MODE ---
         if (this.dialogOpen) return;
 
-        // --- MOVEMENT ---
         this.handleMovement();
 
-        // --- INTERACTIONS ---
         this.activeTarget = null;
         const px = this.player.x;
         const py = this.player.y;
@@ -177,12 +176,10 @@ class VillageScene extends Phaser.Scene {
         p.body.velocity.normalize().scale(120);
     }
 
-    // --- DIALOG SYSTEM (Auto-close after 2s) ---
     showDialog(text) {
         if (this.dialogOpen) return;
 
         this.dialogOpen = true;
-
         this.dialogText.setText(text);
         this.dialogText.setVisible(true);
         this.dialogBoxBG.setVisible(true);
@@ -199,29 +196,29 @@ class VillageScene extends Phaser.Scene {
     handleInteraction(name) {
         switch (name) {
             case "infoSign":
-                this.showDialog("Welcome!\nSeek the statues of Bram, Mirel, and Elara in the courtyard to gather the riddle segments.");
+                this.showDialog("Welcome!\nSeek Bram, Mirel, and Elara to gather the riddle.");
                 break;
 
             case "Bram":
                 this.riddle.Bram = true;
-                this.showDialog("Bram:\n“The first part of the Riddle is: I grow each year, yet I cant be seen.”");
+                this.showDialog("Bram:\n“The first part of the Riddle is: I grow each year, yet I can't be seen.”");
                 break;
 
             case "Mirel":
                 this.riddle.Mirel = true;
-                this.showDialog("Mirel:\n“The second Riddle is: I open doors which no key can unlock”");
+                this.showDialog("Mirel:\n“The second Riddle is: I open doors which no key can unlock.”");
                 break;
 
             case "Elara":
                 this.riddle.Elara = true;
-                this.showDialog("Elara:\n“The third part of the Riddle is: You can't borrow me, but you earn me every day.”");
+                this.showDialog("Elara:\n“The third part of the Riddle is: You earn me every day but cannot borrow me.”");
                 break;
 
             case "MagicDoor":
                 if (this.riddle.Bram && this.riddle.Mirel && this.riddle.Elara) {
                     this.showDialog("EXPERIENCE! You solved the riddle and the door opens. You may proceed.");
                 } else {
-                    this.showDialog("The door rejects you.\nYou must gather all 3 parts of the riddle first.");
+                    this.showDialog("The door rejects you.\nGather all 3 parts of the riddle.");
                 }
                 break;
         }

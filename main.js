@@ -1,3 +1,6 @@
+// ❌ REMOVE THIS (it breaks everything):
+// import Area2Scene from "./Area2Scene.js";
+
 class VillageScene extends Phaser.Scene {
     constructor() {
         super("VillageScene");
@@ -18,8 +21,8 @@ class VillageScene extends Phaser.Scene {
     }
 
     create() {
-        // --- MAP ---
         const map = this.make.tilemap({ key: "village" });
+
         const tileset = map.addTilesetImage(
             "roguelikeSheet_transparent",
             "roguelikeSheet_transparent"
@@ -31,16 +34,13 @@ class VillageScene extends Phaser.Scene {
         const collision = map.createLayer("Collision", tileset, 0, 0);
         collision.setCollisionByExclusion([-1]);
 
-        // --- OBJECTS ---
         const objects = map.getObjectLayer("Objects").objects;
-
         const spawnObj = objects.find(o => o.name === "PlayerSpawn");
         const spawn = spawnObj ? { x: spawnObj.x, y: spawnObj.y - 8 } : { x: 200, y: 200 };
 
-        // --- PLAYER ---
         this.player = this.physics.add.sprite(spawn.x, spawn.y, "player", 0);
-        this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, collision);
+        this.player.setCollideWorldBounds(true);
 
         this.anims.create({
             key: "walk",
@@ -48,9 +48,9 @@ class VillageScene extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
+
         this.player.play("walk");
 
-        // --- INPUT ---
         this.cursors = this.input.keyboard.createCursorKeys();
         this.W = this.input.keyboard.addKey("W");
         this.A = this.input.keyboard.addKey("A");
@@ -58,7 +58,6 @@ class VillageScene extends Phaser.Scene {
         this.D = this.input.keyboard.addKey("D");
         this.E = this.input.keyboard.addKey("E");
 
-        // --- FLOATING PROMPT ---
         this.interactPrompt = this.add.text(0, 0, "Press E", {
             fontSize: "14px",
             backgroundColor: "rgba(0,0,0,0.6)",
@@ -69,7 +68,6 @@ class VillageScene extends Phaser.Scene {
             .setDepth(999)
             .setVisible(false);
 
-        // --- DIALOG BOX ---
         this.dialogBoxBG = this.add.rectangle(400, 530, 760, 120, 0x000000, 0.7)
             .setScrollFactor(0)
             .setDepth(1000)
@@ -77,7 +75,7 @@ class VillageScene extends Phaser.Scene {
 
         this.dialogText = this.add.text(50, 480, "", {
             fontSize: "20px",
-            color: "#ffffff",
+            color: "#fff",
             wordWrap: { width: 700 }
         })
             .setScrollFactor(0)
@@ -86,14 +84,11 @@ class VillageScene extends Phaser.Scene {
 
         this.dialogOpen = false;
 
-        // --- CAMERA ---
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        // --- RIDDLE PROGRESS ---
         this.riddle = { Bram: false, Mirel: false, Elara: false };
 
-        // --- INTERACTION ZONES (Radius = 60px) ---
         const RADIUS = 60;
         this.interactables = {};
 
@@ -103,15 +98,12 @@ class VillageScene extends Phaser.Scene {
 
             const zone = this.add.zone(o.x, o.y - 8, RADIUS, RADIUS);
             this.physics.world.enable(zone);
-            zone.body.setAllowGravity(false);
             zone.body.moves = false;
 
             this.interactables[objName] = { zone, x: o.x, y: o.y - 8 };
         };
 
         ["Bram", "Mirel", "Elara", "infoSign", "MagicDoor"].forEach(makeZone);
-
-        this.activeTarget = null;
     }
 
     update() {
@@ -119,7 +111,6 @@ class VillageScene extends Phaser.Scene {
 
         this.handleMovement();
 
-        this.activeTarget = null;
         const px = this.player.x;
         const py = this.player.y;
 
@@ -141,7 +132,6 @@ class VillageScene extends Phaser.Scene {
 
         if (nearest) {
             const obj = this.interactables[nearest];
-
             this.interactPrompt.setVisible(true);
             this.interactPrompt.setPosition(obj.x, obj.y - 20);
 
@@ -157,28 +147,17 @@ class VillageScene extends Phaser.Scene {
         const p = this.player;
         p.setVelocity(0);
 
-        if (this.cursors.left.isDown || this.A.isDown) {
-            p.setVelocityX(-120);
-            p.setFlipX(true);
-        } else if (this.cursors.right.isDown || this.D.isDown) {
-            p.setVelocityX(120);
-            p.setFlipX(false);
-        }
+        if (this.cursors.left.isDown || this.A.isDown) p.setVelocityX(-120);
+        else if (this.cursors.right.isDown || this.D.isDown) p.setVelocityX(120);
 
-        if (this.cursors.up.isDown || this.W.isDown) {
-            p.setVelocityY(-120);
-        } else if (this.cursors.down.isDown || this.S.isDown) {
-            p.setVelocityY(120);
-        }
+        if (this.cursors.up.isDown || this.W.isDown) p.setVelocityY(-120);
+        else if (this.cursors.down.isDown || this.S.isDown) p.setVelocityY(120);
 
         p.body.velocity.normalize().scale(120);
     }
 
     showDialog(text) {
-        if (this.dialogOpen) return;
-
         this.dialogOpen = true;
-
         this.dialogText.setText(text);
         this.dialogText.setVisible(true);
         this.dialogBoxBG.setVisible(true);
@@ -194,31 +173,32 @@ class VillageScene extends Phaser.Scene {
 
     handleInteraction(name) {
         switch (name) {
+            case "MagicDoor":
+                if (this.riddle.Bram && this.riddle.Mirel && this.riddle.Elara) {
+                    this.showDialog("The door opens...");
+                    this.time.delayedCall(1500, () => this.scene.start("Area2Scene"));
+                } else {
+                    this.showDialog("Find all 3 NPCs first.");
+                }
+                break;
+
             case "infoSign":
-                this.showDialog("Welcome!\nSeek Bram, Mirel, and Elara to gather the riddle.");
+                this.showDialog("Seek Bram, Mirel, and Elara.");
                 break;
 
             case "Bram":
                 this.riddle.Bram = true;
-                this.showDialog("Bram:\n“The first part of the Riddle is: I grow each year, yet I can't be seen.”");
+                this.showDialog("Bram: 'I grow each year…'");
                 break;
 
             case "Mirel":
                 this.riddle.Mirel = true;
-                this.showDialog("Mirel:\n“The second Riddle is: I open doors which no key can unlock.”");
+                this.showDialog("Mirel: 'I open doors without keys…'");
                 break;
 
             case "Elara":
                 this.riddle.Elara = true;
-                this.showDialog("Elara:\n“The third part of the Riddle is: You can't borrow me, but you earn me every day.”");
-                break;
-
-            case "MagicDoor":
-                if (this.riddle.Bram && this.riddle.Mirel && this.riddle.Elara) {
-                    this.showDialog("EXPERIENCE! You solved the riddle—the door opens.");
-                } else {
-                    this.showDialog("The door rejects you.\nYou must gather all 3 parts of the riddle first.");
-                }
+                this.showDialog("Elara: 'You earn me daily…'");
                 break;
         }
     }
@@ -233,7 +213,7 @@ const config = {
         default: "arcade",
         arcade: { gravity: { y: 0 }, debug: false }
     },
-    scene: [VillageScene]
+    scene: [VillageScene, Area2Scene]
 };
 
 new Phaser.Game(config);
